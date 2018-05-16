@@ -1,7 +1,3 @@
-//
-// Created by 杨璧菲 on 2018/5/15.
-//
-
 #ifndef FD_SOLVER_H
 #define FD_SOLVER_H
 

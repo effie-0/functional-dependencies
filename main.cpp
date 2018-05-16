@@ -1,4 +1,4 @@
-// Functional Dependency problem
+// Functional Dependencies problem
 // author: Zhao Shangming, Yang Bifei
 // date: 2018.5.15
 
