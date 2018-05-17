@@ -1,11 +1,16 @@
 #ifndef FD_SOLVER_H
 #define FD_SOLVER_H
 
+# include <vector>
+# include "base.h"
 class Solver {
-    Solver();
-    ~Solver();
+    std::vector<line> data;
 
-    bool load_data();
+public:
+    Solver();
+    ~Solver() = default;
+
+    bool load_data(std::string filename);
 };
 
 #endif //FD_SOLVER_H

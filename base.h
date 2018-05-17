@@ -10,12 +10,6 @@ struct value {
 };
 
 class line {
-    line();
-    ~line() = default;
-    line(int id, int dis_num, std::string& id_card_num, std::string& given_name, char type, std::string& surname,
-         int number, std::string& street, std::string& code, std::string& city, std::string& state, int zip,
-         std::string& college, std::string& addr, std::string& phone);
-
 protected:
     int id;
     int dis_num;
@@ -34,7 +28,18 @@ protected:
     std::string phone;
 
 public:
-    value& operator[](int i);
+    line();
+    ~line() = default;
+    line(int id, int dis_num, std::string& id_card_num, std::string& given_name, char type, std::string& surname,
+         int number, std::string& street, std::string& code, std::string& city, std::string& state, int zip,
+         std::string& college, std::string& addr, std::string& phone);
+    explicit line(char* str);
+
+    value operator[](int i);
+    bool changeNum(int i, int num);
+    bool changeString(int i, std::string& str);
+    bool changeType(char ch);
 };
 
+extern void test();
 #endif //FD_BASE_H

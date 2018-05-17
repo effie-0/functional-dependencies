@@ -1,5 +1,6 @@
 # include "base.h"
 # include <iostream>
+# include <cstring>
 using namespace std;
 
 line::line() {
@@ -30,7 +31,17 @@ line::line(int m_id, int m_dis_num, std::string& m_id_card_num, std::string& m_g
     phone = m_phone;
 }
 
-value& line::operator[](int i) {
+line::line(char *str) {
+    char* p = nullptr;
+    const char* sep = ",";
+    p = strtok(str, sep);
+    int i = 1;
+    while(p != nullptr) {
+        p = strtok(nullptr, sep);
+    }
+}
+
+value line::operator[](int i) {
     struct value result;
     result.isStr = true;
     result.num = -1;
@@ -53,8 +64,7 @@ value& line::operator[](int i) {
             char c_type[2];
             c_type[0] = type;
             c_type[1] = '\0';
-            string m_type(c_type);
-            result.str = m_type;
+            result.str = string(c_type);
             break;
         case 6:
             result.str = surname;
@@ -89,7 +99,73 @@ value& line::operator[](int i) {
             result.str = phone;
             break;
         default:
-            cerr << "wrong index" << endl;
+            cerr << "index out of boundary" << endl;
     }
     return result;
+}
+
+bool line::changeNum(int i, int num) {
+    switch(i) {
+        case 1:
+            id = num;
+            break;
+        case 2:
+            dis_num = num;
+            break;
+        case 7:
+            number = num;
+            break;
+        case 12:
+            zip = num;
+            break;
+        default:
+            cerr << "invalid index at changeNum" << endl;
+            return false;
+    }
+
+    return true;
+}
+
+bool line::changeString(int i, std::string& str) {
+    switch(i) {
+        case 3:
+            id_card_num = str;
+            break;
+        case 4:
+            given_name = str;
+            break;
+        case 6:
+            surname = str;
+            break;
+        case 8:
+            street = str;
+            break;
+        case 9:
+            code = str;
+            break;
+        case 10:
+            city = str;
+            break;
+        case 11:
+            state = str;
+            break;
+        case 13:
+            college = str;
+            break;
+        case 14:
+            addr = str;
+            break;
+        case 15:
+            phone = str;
+            break;
+        default:
+            cerr << "invalid index at changeString" << endl;
+            return false;
+    }
+    return true;
+}
+
+bool line::changeType(char ch) {
+    type = ch;
+    return true;
 }
