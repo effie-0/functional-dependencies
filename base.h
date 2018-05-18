@@ -36,10 +36,7 @@ public:
     explicit line(char* str);
 
     value operator[](int i);
-    bool changeNum(int i, int num);
-    bool changeString(int i, std::string& str);
-    bool changeType(char ch);
 };
 
-extern void test();
+extern void base_test();
 #endif //FD_BASE_H

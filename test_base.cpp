@@ -2,7 +2,7 @@
 # include <iostream>
 using namespace std;
 
-void test() {
+void base_test() {
     string id_card("443074522");
     string given_name("Butcher");
     string surname("Quindo");

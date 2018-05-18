@@ -4,9 +4,11 @@
 
 # include <iostream>
 # include "base.h"
+# include "solver.h"
 
 int main() {
     std::cout << "Hello, World!" << std::endl;
-    test();
+    base_test();
+    solver_test();
     return 0;
 }

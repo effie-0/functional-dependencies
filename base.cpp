@@ -36,7 +36,71 @@ line::line(char *str) {
     const char* sep = ",";
     p = strtok(str, sep);
     int i = 1;
+    int num;
     while(p != nullptr) {
+        if (i > 15)
+            break;
+        if (i == 1 || i == 2 || i == 7 || i == 12) {
+            char* end;
+            num = (int)strtol(p, &end, 10);
+            switch(i) {
+                case 1:
+                    id = num;
+                    break;
+                case 2:
+                    dis_num = num;
+                    break;
+                case 7:
+                    number = num;
+                    break;
+                default:
+                    zip = num;
+                    break;
+            }
+        }
+        else if (i == 5) {
+            if (p[0])
+                type = p[0];
+        }
+        else {
+            string s(p);
+            switch(i) {
+                case 3:
+                    id_card_num = s;
+                    break;
+                case 4:
+                    given_name = s;
+                    break;
+                case 6:
+                    surname = s;
+                    break;
+                case 8:
+                    street = s;
+                    break;
+                case 9:
+                    code = s;
+                    break;
+                case 10:
+                    city = s;
+                    break;
+                case 11:
+                    state = s;
+                    break;
+                case 13:
+                    college = s;
+                    break;
+                case 14:
+                    addr = s;
+                    break;
+                case 15:
+                    phone = s;
+                    break;
+                default:
+                    cerr << "invalid index at changeString" << endl;
+            }
+        }
+
+        i++;
         p = strtok(nullptr, sep);
     }
 }
@@ -102,70 +166,4 @@ value line::operator[](int i) {
             cerr << "index out of boundary" << endl;
     }
     return result;
-}
-
-bool line::changeNum(int i, int num) {
-    switch(i) {
-        case 1:
-            id = num;
-            break;
-        case 2:
-            dis_num = num;
-            break;
-        case 7:
-            number = num;
-            break;
-        case 12:
-            zip = num;
-            break;
-        default:
-            cerr << "invalid index at changeNum" << endl;
-            return false;
-    }
-
-    return true;
-}
-
-bool line::changeString(int i, std::string& str) {
-    switch(i) {
-        case 3:
-            id_card_num = str;
-            break;
-        case 4:
-            given_name = str;
-            break;
-        case 6:
-            surname = str;
-            break;
-        case 8:
-            street = str;
-            break;
-        case 9:
-            code = str;
-            break;
-        case 10:
-            city = str;
-            break;
-        case 11:
-            state = str;
-            break;
-        case 13:
-            college = str;
-            break;
-        case 14:
-            addr = str;
-            break;
-        case 15:
-            phone = str;
-            break;
-        default:
-            cerr << "invalid index at changeString" << endl;
-            return false;
-    }
-    return true;
-}
-
-bool line::changeType(char ch) {
-    type = ch;
-    return true;
 }
