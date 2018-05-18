@@ -14,18 +14,13 @@ bool Solver::load_data(string filename) {
             return false;
         }
         else {
-            int i = 0;
             while(!infile.eof()) {
                 char buffer[256];
                 infile.getline(buffer, 250);
                 if (buffer[0] == '\0' || buffer[0] == '\r' || buffer[0] == '\n')
                     break;
-                i++;
                 line l(buffer);
                 data.push_back(l);
-                if (i % 1000 == 0) {
-                    cout << "i = " << i << endl;
-                }
             }
         }
     }
