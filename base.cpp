@@ -9,6 +9,17 @@ line::line() {
     type = ' ';
     number = -1;
     zip = -1;
+
+    id_card_num = '';
+    given_name = '';
+    surname = '';
+    street = '';
+    code = '';
+    city = '';
+    state = '';
+    college = '';
+    addr = '';
+    phone = '';
 }
 
 line::line(int m_id, int m_dis_num, std::string& m_id_card_num, std::string& m_given_name, char m_type,
@@ -105,7 +116,7 @@ line::line(char *str) {
     }
 }
 
-value line::operator[](int i) {
+value &line::operator[](int i) {
     struct value result;
     result.isStr = true;
     result.num = -1;
@@ -167,3 +178,37 @@ value line::operator[](int i) {
     }
     return result;
 }
+
+bool line::operator == (const line &l) const {
+    if (l.id == id && l.dis_num == dis_num && l.id_card_num == id_card_num && l.given_name == given_name && l.type == type && l.surname == surname && l.number == number && l.street == street && l.code == code && l.city == city && l.state == state && l.zip == zip && l.college == college && l.addr == addr && l.phone == phone) return true;
+    return false;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

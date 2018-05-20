@@ -35,7 +35,8 @@ public:
          std::string& college, std::string& addr, std::string& phone);
     explicit line(char* str);
 
-    value operator[](int i);
+    value &operator[](int i);
+    bool operator == (const line &l) const;
 };
 
 extern void base_test();
