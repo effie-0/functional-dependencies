@@ -177,11 +177,104 @@ std::set<uint32_t> findLHSs(int attributeIndex, const std::vector<line> &r) {
         }
         seeds.erase(seeds.begin());
         newSeeds.clear();
-        generateNextSeeds(minDeps, maxNonDeps, newSeeds);
+        generateNextSeeds(minDeps, maxNonDeps, newSeeds, visitedNodes);
         for (nit = newSeeds.begin(); nit != newSeeds.end(); nit++) {
             seeds.insert(*nit);
         }
     }
 }
 
+void generateNextSeeds(std::set<uint32_t> &minDeps, std::set<uint32_t> &maxNonDeps, std::set<Node> &Seeds, std::map<uint32_t, int> visitedNodes) {
+    std::set<Node> seeds, newSeeds;
+    std::set<uint32_t>::iterator nit;
+    int i;
 
+    for (nit = maxNonDeps.begin(); nit != maxNonDeps.end(); nit++) {
+        uint32_t maxND = ~(*nit);
+        maxND = maxND >> 16;
+        if (seeds.empty()) {
+            i = 16;
+            while(maxND != 0) {
+                if ((maxND & 1) == 1) {
+                    auto iter = visitedNodes.find((uint32_t) 1 << (32 - i));
+                    if (iter != visitedNodes.end()) {
+                        seeds.insert(Node((uint32_t) 1 << (32 - i), true, iter->second));
+                    }
+                    else {
+                        seeds.insert(Node((uint32_t) 1 << (32 - i), false, 0));
+                    }
+                }
+                maxND = maxND >> 1;
+                i--;
+            }
+        }
+        else {
+            i = 16;
+            std::set<Node>::iterator iter;
+            for (iter = seeds.begin(); iter != seeds.end(); iter++) {
+                while(maxND != 0) {
+                    if ((maxND & 1) == 1) {
+                        uint32_t attr = (uint32_t) 1 << (32 - i) + iter->attributes;
+                        auto it = visitedNodes.find(attr);
+                        if (it != visitedNodes.end()) {
+                            newSeeds.insert(Node(attr, true, it->second));
+                        }
+                        else {
+                            newSeeds.insert(Node(attr, false, 0));
+                        }
+                    }
+                    maxND = maxND >> 1;
+                    i--;
+                }
+            }
+
+            std::set<Node> minimizedNewDeps;
+            minimize(minimizedNewDeps, newSeeds);
+            seeds.clear();
+            seeds = minimizedNewDeps;
+            newSeeds.clear();
+        }
+    }
+
+    std::set<Node>::iterator it;
+    for (it = seeds.begin(); it != seeds.end(); it++) {
+        if (minDeps.find(it->attributes) == minDeps.end()) {
+            Seeds.insert(*it);
+        }
+    }
+}
+
+void minimize(std::set<Node> &mini, std::set<Node> &newSeeds) {
+    std::map<Node, bool> value;
+    std::set<Node>::iterator it1, it2;
+
+    for(it1 = newSeeds.begin(); it1 != newSeeds.end(); it1++) {
+        value[*it1] = true;
+    }
+
+    uint32_t temp = 0;
+    for (it1 = newSeeds.begin(); it1 != (--newSeeds.end()); it1++) {
+        if (!value[*it1])
+            continue;
+        for (it2 = (++it1); it2 != newSeeds.end(); it2++) {
+            it1--;
+            if(!value[*it2])
+                continue;
+            temp = it1->attributes & it2->attributes;
+            if (temp == it1->attributes) {
+                value[*it2] = false;
+                continue;
+            }
+            else if (temp == it2->attributes) {
+                value[*it1] = false;
+            }
+        }
+    }
+
+    auto it = value.begin();
+    for (; it != value.end(); it++) {
+        if (it->second) {
+            mini.insert(it->first);
+        }
+    }
+}
