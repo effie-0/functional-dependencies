@@ -85,6 +85,8 @@ std::set<uint32_t> findLHSs(int attributeIndex, const std::vector<line> &r) {
     int i = 0;
     uint32_t tempComb = 0, test = 0, tempSub = 0, tempSup = 0;
     std::map<uint32_t, int> visitedNodes;
+    std::map<uint32_t, int>::iterator vnit, vnend;
+    std::vector<uint32_t>::iterator vit, vend;
     std::map<uint32_t, int>::iterator it;
     std::set<uint32_t> minDeps;
     std::set<uint32_t> maxNonDeps;
@@ -107,7 +109,7 @@ std::set<uint32_t> findLHSs(int attributeIndex, const std::vector<line> &r) {
                         if (tempSub != tempComb) {
                             // find a sub combination
                             it = visitedNodes.find(tempSub << 16);
-                            if (it != visitedNodes.end() && it->second != 4) {
+                            if (it == visitedNodes.end() || it->second != 4) {
                                 node.category = 3;
                             }
                         }
@@ -140,47 +142,83 @@ std::set<uint32_t> findLHSs(int attributeIndex, const std::vector<line> &r) {
                 }
             } else {
                 // not visited
-                tempComb = node.attributes >> 16;
-                test = (uint32_t)1;
-                while (test <= tempComb) {
-                    tempSub = tempComb ^ test;
-                    if (tempSub != tempComb) {
-                        it = visitedNodes.find(tempSub << 16);
-                        if (it != visitedNodes.end() && (it->second == 1 || it->second == 2 || it->second == 3)) {
-                            node.category = 1;
-                            break;
-                        }
-                    }
-                    test = test << 1;
-                }
-                for (it = visitedNodes.find(node.attributes); it != visitedNodes.end(); it++) {
-                    if (it->second == 4 || it->second == 5 || it->second == 6) {
-                        node.category = 3;
+                vnend = visitedNodes.end();
+                for (vnit = visitedNodes.begin(); vnit != vnend; vnit++) {
+                    if ((vnit->first | node.attributes) == node.attributes && (vnit->second == 1 || vnit->second == 2 || vnit->second == 3)) {
+                        // a subset
+                        node.category = 1;
                         break;
-                    }
-                }
-                if (node.category == 0) {
-                    // haven't found category, need to calculate partition
-                    if (computePartitionSize(node.attributes, r) == computePartitionSize(node.attributes | ((uint32_t)1 << (31 - attributeIndex)), r)) {
-                        // node.attributes -> A
-                        node.category = 3;
-                    } else {
-                        node.category = 6;
+                    } else if ((vnit->first | node.attributes) == vnit->first && (vnit->first | node.attributes) != node.attributes) {
+                        // a superset
+                        node.category = 4;
                     }
                 }
             } // not visited
-            if (!pickNextNode(node, trace, newNode, minDeps, maxNonDeps)) {
-                visitedNodes[node.attributes] = node.category;
-                break;
-            }
+            bool flag = pickNextNode(node, trace, newNode, minDeps, maxNonDeps, visitedNodes);
             visitedNodes[node.attributes] = node.category;
+            if (!flag) break;
         }
-        seeds.erase(seeds.begin());
+        seeds.erase(*seeds.begin());
         newSeeds.clear();
         generateNextSeeds(minDeps, maxNonDeps, newSeeds);
         for (nit = newSeeds.begin(); nit != newSeeds.end(); nit++) {
             seeds.insert(*nit);
         }
+    }
+}
+
+bool pickNextNode(Node &node, std::stack<Node> &trace, Node &nextNode, std::set<uint32_t> &minDeps, std::set<uint32_t> &maxNonDeps, std::map<uint32_t, int> &visitedNodes) {
+    uint32_t tempComb, test, tempSub, tempSup;
+    std::map<uint32_t, std::vector<uint32_t>>::iterator supit;
+    std::set<uint32_t> nodes;
+    if (node.category == 3) {
+        // candidate minimal dep
+        tempComb = node.attributes >> 16;
+        test = (uint32_t)1;
+        while (test <= tempComb) {
+            tempSub = tempComb ^ test;
+            if (tempSub != tempComb) {
+                // find a subset
+                if (visitedNodes.find(tempSub << 16) == visitedNodes.end()) {
+                    nodes.insert(tempSub << 16);
+                }
+                // TO DO: haven't pruned
+            }
+            test = test << 1;
+        }
+        if (nodes.size() == 0) {
+            minDeps.insert(node);
+        } else {
+            srand((unsigned)time(NULL));
+            nextNode.attributes = nodes[rand() % (nodes.size())];
+            trace.push(node);
+            return true;
+        }
+    } else if (node.category == 6) {
+        tempComb = node.attributes >> 16;
+        test = (uint32_t)1;
+        while (test <= 32768) {
+            tempSup = tempComb | test;
+            if (tempSup != tempComb) {
+                // find a super combination
+                if (visitedNodes.find(tempSup << 16) == visitedNodes.end()) {
+                    nodes.insert(tempSup << 16);
+                }
+            }
+            test = test << 1;
+        }
+        if (nodes.size() == 0) {
+            maxNonDeps.insert(node);
+        } else {
+            nextNode.attributes = nodes[rand() % (nodes.size())];
+            trace.push(node);
+            return true;
+        }
+    } else {
+        if (trace.empty()) return false;
+        nextNode = trace.top();
+        trace.pop();
+        return true;
     }
 }
 
