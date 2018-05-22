@@ -44,3 +44,5 @@ cmake-build-release/
 # data
 data/
 
+# CMakeLists
+CMakeLists.txt

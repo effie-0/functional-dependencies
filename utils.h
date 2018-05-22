@@ -19,7 +19,8 @@ extern std::set<uint32_t> mainLoop(const std::vector<line> &r);  // first 16 bit
 extern std::set<uint32_t> findLHSs(int attributeIndex, const std::vector<line> &r);
 extern bool isUnique(int attributeIndex, const std::vector<line> &r);
 bool pickNextNode(Node &node, std::stack<Node> &trace, Node &nextNode, std::set<uint32_t> &minDeps, std::set<uint32_t> &maxNonDeps, std::map<uint32_t, int> &visitedNodes);
-extern void generateNextSeeds(std::set<uint32_t> &minDeps, std::set<uint32_t> &maxNonDeps, std::set<Node> &newSeeds);
+extern void generateNextSeeds(std::set<uint32_t> &minDeps, std::set<uint32_t> &maxNonDeps, std::set<Node> &newSeeds, std::map<uint32_t, int> visitedNodes);
 extern int computePartitionSize(uint32_t attributes, const std::vector<line> &r);
+extern void minimize(std::set<Node> &mini, std::set<Node> &newSeeds);
 
 #endif //FD_UTILS_H
