@@ -10,16 +10,16 @@ line::line() {
     number = -1;
     zip = -1;
 
-    id_card_num = '';
-    given_name = '';
-    surname = '';
-    street = '';
-    code = '';
-    city = '';
-    state = '';
-    college = '';
-    addr = '';
-    phone = '';
+    id_card_num = "";
+    given_name = "";
+    surname = "";
+    street = "";
+    code = "";
+    city = "";
+    state = "";
+    college = "";
+    addr = "";
+    phone = "";
 }
 
 line::line(int m_id, int m_dis_num, std::string& m_id_card_num, std::string& m_given_name, char m_type,
@@ -116,7 +116,25 @@ line::line(char *str) {
     }
 }
 
-value &line::operator[](int i) {
+line::line(const line &l) {
+    id = l.id;
+    dis_num = l.dis_num;
+    id_card_num = l.id_card_num;
+    given_name = l.given_name;
+    type = l.type;
+    surname = l.surname;
+    number = l.number;
+    street = l.street;
+    code = l.code;
+    city = l.city;
+    state = l.state;
+    zip = l.zip;
+    college = l.college;
+    addr = l.addr;
+    phone = l.phone;
+}
+
+value line::operator[](int i) {
     struct value result;
     result.isStr = true;
     result.num = -1;
@@ -179,36 +197,93 @@ value &line::operator[](int i) {
     return result;
 }
 
+bool line::operator < (const line &line) const {
+    if (id < line.id) return true;
+    else if (id > line.id) return false;
+    else if (dis_num < line.dis_num) return true;
+    else if (dis_num > line.dis_num) return false;
+    else if (id_card_num < line.id_card_num) return true;
+    else if (id_card_num > line.id_card_num) return false;
+    else if (given_name > line.given_name) return true;
+    else if (given_name < line.given_name) return false;
+    else if (type < line.type) return true;
+    else if (type > line.type) return false;
+    else if (surname < line.surname) return true;
+    else if (surname > line.surname) return false;
+    else if (number < line.number) return true;
+    else if (number > line.number) return false;
+    else if (street < line.street) return true;
+    else if (street > line.street) return false;
+    else if (code < line.code) return true;
+    else if (code > line.code) return false;
+    else if (city < line.city) return true;
+    else if (city > line.city) return false;
+    else if (state < line.state) return true;
+    else if (state > line.state) return false;
+    else if (zip < line.zip) return true;
+    else if (zip > line.zip) return false;
+    else if (college < line.college) return true;
+    else if (college > line.college) return false;
+    else if (addr < line.addr) return true;
+    else if (addr > line.addr) return false;
+    else if (phone < line.phone) return true;
+    else if (phone > line.phone) return false;
+    else return false;
+}
+
 bool line::operator == (const line &l) const {
     if (l.id == id && l.dis_num == dis_num && l.id_card_num == id_card_num && l.given_name == given_name && l.type == type && l.surname == surname && l.number == number && l.street == street && l.code == code && l.city == city && l.state == state && l.zip == zip && l.college == college && l.addr == addr && l.phone == phone) return true;
     return false;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+void line::set(int i, value v) {
+    switch(i) {
+        case 1:
+            id = v.num;
+            break;
+        case 2:
+            dis_num = v.num;
+            break;
+        case 3:
+            id_card_num = v.str;
+            break;
+        case 4:
+            given_name = v.str;
+            break;
+        case 5:
+            type = v.str[0];
+            break;
+        case 6:
+            surname = v.str;
+            break;
+        case 7:
+            number = v.num;
+            break;
+        case 8:
+            street = v.str;
+            break;
+        case 9:
+            code = v.str;
+            break;
+        case 10:
+            city = v.str;
+            break;
+        case 11:
+            state = v.str;
+            break;
+        case 12:
+            zip = v.num;
+            break;
+        case 13:
+            college = v.str;
+            break;
+        case 14:
+            addr = v.str;
+            break;
+        case 15:
+            phone = v.str;
+            break;
+        default:
+            cerr << "index out of boundary" << endl;
+    }
+}

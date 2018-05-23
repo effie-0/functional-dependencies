@@ -4,7 +4,9 @@
 # include <vector>
 # include "base.h"
 class Solver {
+public:
     std::vector<line> data;
+private:
     std::string filename;
 
 public:

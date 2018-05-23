@@ -33,10 +33,14 @@ public:
     line(int id, int dis_num, std::string& id_card_num, std::string& given_name, char type, std::string& surname,
          int number, std::string& street, std::string& code, std::string& city, std::string& state, int zip,
          std::string& college, std::string& addr, std::string& phone);
+    line(const line &l);
     explicit line(char* str);
 
-    value &operator[](int i);
+    value operator[](int i);
     bool operator == (const line &l) const;
+
+    bool operator < (const line &line) const;
+    void set(int i, value v);
 };
 
 extern void base_test();
