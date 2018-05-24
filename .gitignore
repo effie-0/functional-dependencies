@@ -46,3 +46,7 @@ data/
 
 # CMakeLists
 CMakeLists.txt
+
+# debug
+utils.cpp
+utils.h

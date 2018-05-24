@@ -2,31 +2,20 @@
 # include <iostream>
 using namespace std;
 
-void solver_test() {
+void load_test() {
     Solver solver1;
     cout << "solver1.data.size = " << solver1.get_size() << endl;
-    line a = solver1.get_data(0);
-    int i;
-    for (i = 1; i < 16; i++) {
-        value result = a[i];
-        if (result.isStr) {
-            cout << i << ": " << result.str << endl;
-        }
-        else {
-            cout << i << ": " << result.num << endl;
-        }
+    auto a = solver1.data[2];
+    for (auto& it : a) {
+        cout  << it << endl;
     }
 
-    Solver solver2("./data/data.txt");
+    string str("../data/data.txt");
+    Solver solver2(str);
     cout << "solver2.data.size = " << solver2.get_size() << endl;
-    line b = solver2.get_data(101);
-    for (i = 1; i < 16; i++) {
-        value result = b[i];
-        if (result.isStr) {
-            cout << i << ": " << result.str << endl;
-        }
-        else {
-            cout << i << ": " << result.num << endl;
-        }
+    auto b = solver2.data[0];
+    int i;
+    for (i = 0; i < solver2.col_length; i++) {
+        cout << i << ": " << b[i] << endl;
     }
 }
