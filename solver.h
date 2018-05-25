@@ -6,6 +6,7 @@
 # include <string>
 # include <bitset>
 # include <map>
+# include <stack>
 class Solver {
 private:
     std::vector<bool> uniqueAttr;
@@ -16,11 +17,17 @@ private:
     std::map<std::bitset<32>, bool> non_dependency;
     std::map<std::bitset<32>, bool> maximal_non_dependency;
     std::map<std::bitset<32>, bool> candidate_maximal_non_dependency;
+    std::stack<std::bitset<32>> trace;
 
     bool isUnique(size_t attr);
+    void clear_records();
 
     std::set<std::bitset<32>> findLHSs(int RHS);
-    std::set<std::bitset<32>> generateNextSeeds();
+    std::set<std::bitset<32>> generateNextSeeds(std::set<std::bitset<32>> &minDeps, std::set<std::bitset<32>> &maxNonDeps);
+    std::bitset<32> pickNextNode(std::bitset<32> node, std::set<std::bitset<32>> &minDeps, std::set<std::bitset<32>> &maxNonDeps);
+    std::set<std::bitset<32>> getPrunedSubset(std::bitset<32> LHS);
+    std::set<std::bitset<32>> getPrunedSuperset(std::bitset<32> LHS);
+    std::set<std::bitset<32>> minimize(std::set<std::bitset<32>> &newSeeds);
 
     bool isVisited(std::bitset<32> LHS);
     bool isCandidate(std::bitset<32> LHS);
@@ -46,6 +53,8 @@ public:
     bool print_result(std::string filename);
 
     std::set<std::bitset<32>> result;
+    std::map<std::bitset<32>, int> partitions;
+    std::map<std::bitset<32>, std::set<std::set<int>>> probe_table;
 
     void solve();
 

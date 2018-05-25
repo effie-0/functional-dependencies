@@ -3,6 +3,7 @@
 # include <sstream>
 # include <fstream>
 # include <exception>
+# include <algorithm>
 using namespace std;
 
 bool Solver::load_data(string filename) {
@@ -155,11 +156,27 @@ void Solver::solve() {
     }
 
     for (i = 0; i < col_length; i++) {
+        if (uniqueAttr[i])
+            continue;
+        clear_records();
         set<bitset<32>> LHS = findLHSs((int)i);
         for(auto it: LHS) {
             it.set(i);
             result.insert(it);
         }
+    }
+}
+
+void Solver::clear_records() {
+    visited.clear();
+    dependency.clear();
+    minimal_dependency.clear();
+    candidate_minimal_dependency.clear();
+    non_dependency.clear();
+    maximal_non_dependency.clear();
+    candidate_maximal_non_dependency.clear();
+    while(!trace.empty()) {
+        trace.pop();
     }
 }
 
@@ -208,10 +225,11 @@ set<bitset<32>> Solver::findLHSs(int RHS) {
                         computePartitions(it, RHS);
                     }
                 }
+                it = pickNextNode(it, minDeps, maxNonDeps);
             }
             while(it != 0);
         }
-        seeds = generateNextSeeds();
+        seeds = generateNextSeeds(minDeps, maxNonDeps);
     }
 
     return minDeps;
@@ -275,4 +293,224 @@ bool Solver::isNonDependency(std::bitset<32> LHS) {
     }
 
     return it1->second || it2->second || it3->second;
+}
+
+bool Solver::isMinimal(bitset<32> LHS) {
+    size_t i;
+    bitset<32> temp;
+    for (i = 0; i < col_length; i++) {
+        if (LHS.test(16 + i)) {
+            temp = LHS;
+            temp.reset(i + 16);
+            if (isVisited(temp)) {
+                if (isDependency(temp)) {
+                    candidate_minimal_dependency[LHS] = false;
+                    minimal_dependency[LHS] = false;
+                    dependency[LHS] = true;
+                    return false;
+                }
+            }
+            else {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool Solver::isMaximal(std::bitset<32> LHS) {
+    size_t i;
+    bitset<32> temp;
+    for (i = 0; i < col_length; i++) {
+        if (uniqueAttr[i])
+            continue;
+        if (!LHS.test(16 + i)) {
+            temp = LHS;
+            temp.set(16 + i);
+            if (isVisited(temp)) {
+                if (isNonDependency(temp)) {
+                    candidate_maximal_non_dependency[LHS] = false;
+                    maximal_non_dependency[LHS] = false;
+                    non_dependency[LHS] = true;
+                    return false;
+                }
+            }
+            else {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+void Solver::inferCategory(std::bitset<32> LHS) {
+    visited[LHS] = true;
+    for (auto it : minimal_dependency) {
+        if (!it.second)
+            continue;
+        auto temp = it.first.to_ulong() & LHS.to_ulong();
+        if (it.first != LHS && temp == it.first.to_ulong()) {
+            dependency[LHS] = true;
+        }
+    }
+
+    for (auto it : candidate_minimal_dependency) {
+        if (!it.second)
+            continue;
+        auto temp = it.first.to_ulong() & LHS.to_ulong();
+        if (it.first != LHS && temp == it.first.to_ulong()) {
+            dependency[LHS] = true;
+        }
+    }
+
+    for (auto it : maximal_non_dependency) {
+        if (!it.second)
+            continue;
+        auto temp = it.first.to_ulong() & LHS.to_ulong();
+        if (it.first != LHS && temp == LHS.to_ulong()) {
+            non_dependency[LHS] = true;
+        }
+    }
+
+    for (auto it : candidate_maximal_non_dependency) {
+        if (!it.second)
+            continue;
+        auto temp = it.first.to_ulong() & LHS.to_ulong();
+        if (it.first != LHS && temp == LHS.to_ulong()) {
+            non_dependency[LHS] = true;
+        }
+    }
+}
+
+bitset<32> Solver::pickNextNode(bitset<32> LHS, set<bitset<32>> &minDeps, set<bitset<32>> &maxNonDeps) {
+    if (isCandidate(LHS) && isDependency(LHS)) {
+        auto S = getPrunedSubset(LHS);
+        if (S.empty()) {
+            minDeps.insert(LHS);
+            // update dependency types
+            candidate_minimal_dependency[LHS] = false;
+            minimal_dependency[LHS] = true;
+        }
+        else {
+            bitset<32> nextNode = *(S.begin());
+            trace.push(LHS);
+            return nextNode;
+        }
+    }
+    else if (isCandidate(LHS) && isMaximal(LHS)) {
+        auto S = getPrunedSuperset(LHS);
+        if (S.empty()) {
+            maxNonDeps.insert(LHS);
+            // update dependency types
+            candidate_maximal_non_dependency[LHS] = false;
+            maximal_non_dependency[LHS] = true;
+        }
+        else {
+            bitset<32> nextNode = *(S.begin());
+            trace.push(LHS);
+            return nextNode;
+        }
+    }
+    if (!trace.empty()) {
+        bitset<32> nextNode = trace.top();
+        trace.pop();
+        return nextNode;
+    }
+}
+
+set<bitset<32>> Solver::getPrunedSubset(bitset<32> LHS) {
+    size_t i;
+    set<bitset<32>> subset;
+    for (i = 0; i < col_length; i++) {
+        if (LHS.test(16 + i)) {
+            bitset<32> next = LHS;
+            next.reset(16 + i);
+            if (!isVisited(next)) {
+                subset.insert(next);
+            }
+        }
+    }
+
+    return subset;
+}
+
+set<bitset<32>> Solver::getPrunedSuperset(std::bitset<32> LHS) {
+    size_t i, j;
+    set<bitset<32>> superset;
+    bool excluded;
+    for (i = 0; i < col_length; i++) {
+        if (uniqueAttr[i])
+            continue;
+        if (!LHS.test(16 + i)) {
+            bitset<32> next = LHS;
+            next.set(16 + i);
+            if (!isVisited(next)) {
+                excluded = false;
+                for (j = 0; j < col_length; j++) {
+                    if (i == j)
+                        continue;
+                    if (next.test(16 + j)) {
+                        bitset<32> temp = next;
+                        temp.reset(16 + j);
+                        if (isVisited(temp)) {
+                            if (isDependency(temp)) {
+                                excluded = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (!excluded)
+                    superset.insert(next);
+            }
+        }
+    }
+    return superset;
+}
+
+set<bitset<32>> Solver::generateNextSeeds(set<bitset<32>> &minDeps, set<bitset<32>> &maxNonDeps) {
+    set<bitset<32>> seeds;
+    set<bitset<32>> newSeeds;
+    size_t i;
+
+    for (auto it : maxNonDeps) {
+        bitset<32> complement(~it.to_ulong());
+        if (seeds.empty()){
+            for (i = 0; i < col_length; i++) {
+                if (uniqueAttr[i])
+                    continue;
+                if (complement.to_ulong() & (1 << (16 + i))) {
+                    bitset<32> value;
+                    value.set(16 + i);
+                    seeds.insert(value);
+                }
+            }
+        }
+        else {
+            for (auto its: seeds) {
+                for (i = 0; i < col_length; i++) {
+                    if (uniqueAttr[i])
+                        continue;
+                    if (complement.to_ulong() & (1 << (16 + i))) {
+                        bitset<32> value;
+                        value.set(16 + i);
+                        newSeeds.insert(value);
+                    }
+                }
+            }
+            auto minimizedNewDeps = minimize(newSeeds);
+            seeds.clear();
+            seeds = minimizedNewDeps;
+            newSeeds.clear();
+        }
+    }
+
+    for (auto it: minDeps) {
+        seeds.erase(it);
+    }
+    return seeds;
+}
+
+set<bitset<32>> Solver::minimize(set<bitset<32>> &newSeeds) {
+
 }
