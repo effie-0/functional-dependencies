@@ -10,7 +10,6 @@ bool Solver::load_data(string filename) {
     ifstream infile;
     try {
         infile.open(filename);
-        cout << "filename = " << filename << endl;
         if (!infile.good()) {
             cerr << "failure while load data" << endl;
             return false;
@@ -60,16 +59,12 @@ Solver::Solver() {
     col_length = 0;
     filename = "../data/test_data.txt";
     bool succ = load_data(filename);
-    if (succ)
-        cout << "Solver() succeed" << endl;
 }
 
 Solver::Solver(std::string& file) {
     col_length = 0;
     filename = file;
     bool succ = load_data(filename);
-    if(succ)
-        cout << "Solver(filename) succeed" << endl;
 }
 
 unsigned long Solver::get_size() {
@@ -80,18 +75,33 @@ bool Solver::print_result(std::string filename) {
     ofstream outfile;
     try {
         outfile.open(filename, ios::trunc);
-        cout << "saved filename = " << filename << endl;
         if (!outfile.good()) {
             cerr << "failure while print data" << endl;
             return false;
         }
         else {
             size_t i;
-            bool isChecked;
+            set<bitset<32>, compare> new_result;
             for (auto &it : result) {
+                bitset<32> new_value;
+                for (i = 0; i < col_length; i++) {
+                    if (it.test(16 + i)) {
+                        new_value.set(31 - i);
+                    }
+                    if (it.test(i)) {
+                        new_value.set(16 - i);
+                    }
+                }
+                new_result.insert(new_value);
+            }
+
+            bool isChecked;
+            auto it = new_result.rbegin();
+            auto rend = new_result.rend();
+            for (; it != rend; it++) {
                 isChecked = false;
                 for (i = 0; i < col_length; i++) {
-                    if (it.test(16+i)) {
+                    if (it->test(31 - i)) {
                         if (!isChecked)
                             isChecked = true;
                         outfile << (i+1) << " ";
@@ -100,7 +110,7 @@ bool Solver::print_result(std::string filename) {
                 if (isChecked) {
                     outfile << "-> ";
                     for (i = 0; i < col_length; i++) {
-                        if (it.test(i)) {
+                        if (it->test(16 - i)) {
                             outfile << (i+1) << " ";
                         }
                     }
@@ -173,16 +183,12 @@ void Solver::solve() {
     }
 
     for (i = 0; i < col_length; i++) {
-        if (uniqueAttr[i])
-            continue;
         clear_records();
         set<bitset<32>, compare> LHS = findLHSs((int)i);
         for(auto it: LHS) {
             it.set(i);
             result.insert(it);
         }
-        cout << "RHS : " << i + 1 << "/" << col_length << endl;
-        cout << "result.size = " << result.size() << endl;
     }
 }
 
@@ -207,7 +213,7 @@ set<bitset<32>, compare> Solver::findLHSs(int RHS) {
     // seeds <- R\{A}
     size_t i;
     for (i = 0; i < col_length; i++) {
-        if (i == RHS)
+        if (i == RHS || uniqueAttr[i])
             continue;
         bitset<32> re;
         re.set(i + 16);

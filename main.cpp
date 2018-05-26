@@ -7,8 +7,6 @@
 # include <ctime>
 
 int main() {
-    load_test();
-
     std::string ifile("../data/data.txt");
     std::string ofile("../data/result.txt");
 
